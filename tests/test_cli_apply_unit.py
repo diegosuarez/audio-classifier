@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import pytest
+
 from audio_classifier.cli import build_parser, process_folder, target_for
 from audio_classifier.config import AppConfig
 from audio_classifier.db import connect
@@ -117,3 +119,50 @@ def test_missing_fpcalc_fails_once_with_an_install_hint(tmp_path, monkeypatch, c
     args = build_parser().parse_args(["scan", str(music), "--db", str(tmp_path / "s.db")])
     assert process_folder(args, apply=False) == 2
     assert "fpcalc not found" in capsys.readouterr().err
+
+
+def test_a_corrupt_file_is_recorded_and_the_batch_continues(tmp_path, monkeypatch):
+    import subprocess
+
+    from audio_classifier import cli
+    from audio_classifier.db import connect
+
+    _stub_pipeline(monkeypatch, tmp_path)
+    music = tmp_path / "music"
+    music.mkdir()
+    (music / "broken.mp3").write_bytes(b"x")
+    (music / "fine.mp3").write_bytes(b"y")
+
+    def fpcalc(path):
+        if "broken" in str(path):
+            raise subprocess.CalledProcessError(1, ["fpcalc"], stderr="invalid data")
+        return FingerprintResult(duration=180, fingerprint="fp")
+
+    monkeypatch.setattr(cli, "run_fpcalc", fpcalc)
+    db = tmp_path / "state.db"
+    args = build_parser().parse_args(
+        ["apply", str(music), "--yes", "--sleep", "0", "--db", str(db), "--no-write-tags"]
+    )
+    assert process_folder(args, apply=True) == 0
+
+    statuses = dict(connect(db).execute("SELECT old_path, status FROM operations").fetchall())
+    assert statuses[str(music / "broken.mp3")] == "error"
+    assert (music / "Title - Artist.mp3").exists()
+
+
+def test_a_programming_error_is_not_swallowed_per_file(tmp_path, monkeypatch):
+    """A bug must crash loudly, not be logged once per file as "error"."""
+    from audio_classifier import cli
+
+    _stub_pipeline(monkeypatch, tmp_path)
+    music = tmp_path / "music"
+    music.mkdir()
+    (music / "a.mp3").write_bytes(b"x")
+
+    def broken(*args, **kwargs):
+        raise TypeError("choose_best_result() got an unexpected keyword argument")
+
+    monkeypatch.setattr(cli, "choose_best_result", broken)
+    args = build_parser().parse_args(["scan", str(music), "--sleep", "0", "--db", str(tmp_path / "s.db")])
+    with pytest.raises(TypeError):
+        process_folder(args, apply=False)

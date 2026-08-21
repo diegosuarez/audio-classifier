@@ -3,8 +3,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 from pathlib import Path
+import subprocess
 import sys
 import time
+
+from mutagen import MutagenError
 
 from dataclasses import replace
 
@@ -25,6 +28,12 @@ AUDIO_EXTS = {".mp3", ".flac", ".m4a", ".mp4", ".ogg", ".opus", ".wav", ".aac"}
 DEFAULT_DB = Path.home() / ".local" / "share" / "audio-classifier" / "audio-classifier.db"
 # How many MusicBrainz recordings to try when AcoustID matched without metadata.
 MUSICBRAINZ_MAX_CANDIDATES = 3
+
+# Failures that belong to a single file and must not stop the batch: unreadable
+# or corrupt audio, a network hiccup, a malformed response. Anything else is a
+# bug in this program, and swallowing those is how a broken AcoustID query went
+# unnoticed while it reported every file as merely unidentifiable.
+RECOVERABLE_ERRORS = (OSError, subprocess.SubprocessError, ValueError, MutagenError)
 
 
 def sha256_head(path: Path, max_bytes: int = 1024 * 1024) -> str:
@@ -169,9 +178,10 @@ def process_folder(args, apply: bool = False) -> int:
                     path.rename(target)
                     actual_path = target
                 record_operation(conn, file_id, path, actual_path, wrote, "applied")
-        except Exception as exc:
-            rows.append((path.name, "error", "", "", "", str(exc)))
-            record_operation(conn, file_id, path, None, False, "error", str(exc))
+        except RECOVERABLE_ERRORS as exc:
+            detail = f"{type(exc).__name__}: {exc}"
+            rows.append((path.name, "error", "", "", "", detail))
+            record_operation(conn, file_id, path, None, False, "error", detail)
     print_table(rows)
     return 0
 

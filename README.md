@@ -197,6 +197,11 @@ uv run audio-classifier apply /path/to/folder --yes
 - **Enrichment never sinks a file.** If MusicBrainz or Last.fm is unreachable,
   the failure is reported on stderr and the file keeps whatever metadata
   AcoustID gave it.
+- **A bad file does not stop the batch, but a bug does.** Unreadable audio, a
+  network hiccup or a malformed response are recorded against that one file
+  and the run continues. Any other exception is a defect in this program and
+  is left to crash, because a batch tool that logs its own bugs once per file
+  hides them.
 - **Rate limits are respected**: one request per second to MusicBrainz, four
   per second to Last.fm, and `--sleep` between AcoustID lookups.
 - **Genres are sparse.** MusicBrainz genres are user-voted and usually absent;
