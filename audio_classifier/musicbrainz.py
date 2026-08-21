@@ -12,6 +12,7 @@ from dataclasses import replace
 import json
 import threading
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -21,6 +22,9 @@ from .resolver import TrackMetadata, artist_phrase
 MB_BASE = "https://musicbrainz.org/ws/2"
 MB_INCLUDES = "artists+releases+release-groups+media+genres"
 MIN_INTERVAL_SECONDS = 1.0
+# 503 is how MusicBrainz says "busy, back off", not a permanent failure.
+MAX_ATTEMPTS = 3
+RETRY_BACKOFF_SECONDS = 2.0
 
 _throttle_lock = threading.Lock()
 _last_call = 0.0
@@ -40,12 +44,26 @@ def _throttle() -> None:
         _last_call = time.monotonic()
 
 
-def fetch_recording(recording_id: str, *, contact: str = "", timeout: int = 30) -> dict:
+def fetch_recording(
+    recording_id: str, *, contact: str = "", timeout: int = 30, attempts: int = MAX_ATTEMPTS
+) -> dict:
+    """Fetch one recording, retrying while MusicBrainz reports itself busy.
+
+    Under load the service answers 503 often enough to lose a quarter of a
+    batch, while every other status is final and raised immediately.
+    """
     url = f"{MB_BASE}/recording/{urllib.parse.quote(recording_id)}?inc={MB_INCLUDES}&fmt=json"
     req = urllib.request.Request(url, headers={"User-Agent": user_agent(contact)})
-    _throttle()
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    for attempt in range(1, attempts + 1):
+        _throttle()
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            if exc.code != 503 or attempt == attempts:
+                raise
+            time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+    raise AssertionError("unreachable")
 
 
 # Release group primary types, best first for "which album is this from".

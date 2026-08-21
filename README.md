@@ -218,9 +218,11 @@ audio could identify them:
 | Wrong | 1 | 2% |
 
 Every one of the eight misses is a live recording (Glastonbury, Pinkpop, a BBC
-session); studio tracks were identified almost without exception. Albums were
-filled for 50 of the 58 identified files, dates for 49, genres for 21 — and
-that last figure is with no Last.fm key configured.
+session); studio tracks were identified almost without exception.
+
+Enrichment on those 58 identified files: album 55, release date 54, genre 58.
+Genre coverage is what the Last.fm stage buys — without a key it is 21 of 58,
+because MusicBrainz genres are voted by users and mostly absent.
 
 ## State
 

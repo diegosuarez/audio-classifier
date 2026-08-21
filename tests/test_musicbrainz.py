@@ -190,3 +190,53 @@ def test_compilations_lose_to_the_original_studio_album():
 def test_an_album_beats_an_earlier_single():
     merged = merge_recording_details(TrackMetadata(title="T", artist="A"), COMPILATION_VS_ALBUM)
     assert merged.album != "The Passenger"
+
+
+def test_fetch_recording_retries_while_musicbrainz_is_busy(monkeypatch):
+    import urllib.error
+
+    from audio_classifier import musicbrainz as mb
+
+    attempts = []
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self):
+            return b'{"id": "rec-1", "title": "T"}'
+
+    def flaky_urlopen(req, timeout=30):
+        attempts.append(req.full_url)
+        if len(attempts) < 3:
+            raise urllib.error.HTTPError(req.full_url, 503, "Busy", {}, None)
+        return FakeResponse()
+
+    monkeypatch.setattr(mb.urllib.request, "urlopen", flaky_urlopen)
+    monkeypatch.setattr(mb.time, "sleep", lambda _: None)
+    monkeypatch.setattr(mb, "_throttle", lambda: None)
+    assert mb.fetch_recording("rec-1")["id"] == "rec-1"
+    assert len(attempts) == 3
+
+
+def test_fetch_recording_does_not_retry_a_404(monkeypatch):
+    import urllib.error
+
+    from audio_classifier import musicbrainz as mb
+
+    attempts = []
+
+    def missing(req, timeout=30):
+        attempts.append(1)
+        raise urllib.error.HTTPError(req.full_url, 404, "Not Found", {}, None)
+
+    monkeypatch.setattr(mb.urllib.request, "urlopen", missing)
+    monkeypatch.setattr(mb, "_throttle", lambda: None)
+    try:
+        mb.fetch_recording("nope")
+    except urllib.error.HTTPError as exc:
+        assert exc.code == 404
+    assert len(attempts) == 1

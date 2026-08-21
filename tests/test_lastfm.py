@@ -105,3 +105,28 @@ def test_cli_keeps_metadata_when_lastfm_fails(monkeypatch, capsys):
     meta = TrackMetadata(title="T", artist="A")
     assert cli.add_lastfm_genre(meta, "key") is meta
     assert "Last.fm lookup failed" in capsys.readouterr().err
+
+
+def test_nationality_tags_are_not_genres():
+    """Sinead O'Connor's top artist tags are "female vocalists" then "irish"."""
+    tags = [
+        {"name": "female vocalists", "count": 100},
+        {"name": "irish", "count": 81},
+        {"name": "alternative", "count": 52},
+    ]
+    assert pick_genre(tags) == "alternative"
+
+
+def test_demonyms_that_name_a_genre_survive():
+    assert pick_genre([{"name": "latin", "count": 90}]) == "latin"
+    assert pick_genre([{"name": "celtic", "count": 90}]) == "celtic"
+
+
+def test_decades_are_rejected_however_they_are_punctuated():
+    for tag in ["60s", "60's", "'60s", "1960s", "1960's", "00s", "2010s"]:
+        assert pick_genre([{"name": tag, "count": 100}]) == "", tag
+
+
+def test_a_genre_ending_in_s_is_not_mistaken_for_a_decade():
+    assert pick_genre([{"name": "oldies", "count": 90}]) == "oldies"
+    assert pick_genre([{"name": "blues", "count": 90}]) == "blues"

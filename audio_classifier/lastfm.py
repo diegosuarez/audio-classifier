@@ -25,7 +25,8 @@ MIN_INTERVAL_SECONDS = 0.25
 # Tag counts are a 0-100 popularity score; below this it is noise.
 MIN_TAG_COUNT = 10
 
-_DECADE = re.compile(r"^(19|20)?\d0s$")
+# Decades are written 60s, 60's, '60s, 1960s and 1960's.
+_DECADE = re.compile(r"^'?(19|20)?\d0'?s$")
 
 # Tags that are popular on Last.fm but say nothing about genre.
 NON_GENRE_TAGS = frozenset({
@@ -37,8 +38,26 @@ NON_GENRE_TAGS = frozenset({
     "love", "love at first listen", "loved", "best songs ever",
     "check out", "under 2000 listeners", "male vocalists", "female vocalists",
     "male vocalist", "female vocalist", "vocal", "band", "music",
-    "british", "american", "english", "usa", "uk",
 })
+
+# Nationality and language tags are among the most-voted on artist pages and
+# would otherwise become the genre for any act whose tracks are untagged.
+# Demonyms that are also genre names (latin, celtic, nordic, afro...) are
+# deliberately absent.
+NATIONALITY_TAGS = frozenset({
+    "american", "argentine", "argentinian", "australian", "austrian",
+    "belgian", "brazilian", "british", "bulgarian", "canadian", "chilean",
+    "chinese", "colombian", "croatian", "cuban", "czech", "danish", "dutch",
+    "english", "estonian", "european", "finnish", "french", "german",
+    "greek", "hungarian", "icelandic", "indian", "indonesian", "iranian",
+    "irish", "israeli", "italian", "jamaican", "japanese", "korean",
+    "mexican", "new zealand", "nigerian", "norwegian", "polish",
+    "portuguese", "romanian", "russian", "scottish", "serbian", "slovenian",
+    "south african", "spanish", "swedish", "swiss", "turkish", "ukrainian",
+    "uk", "usa", "venezuelan", "welsh",
+})
+
+BLOCKED_TAGS = NON_GENRE_TAGS | NATIONALITY_TAGS
 
 _throttle_lock = threading.Lock()
 _last_call = 0.0
@@ -78,7 +97,7 @@ def parse_tags(payload: dict) -> list[dict]:
 
 def is_genre_like(name: str, blocked: frozenset[str] | set[str]) -> bool:
     key = name.strip().lower()
-    if not key or key in blocked or key in NON_GENRE_TAGS:
+    if not key or key in blocked or key in BLOCKED_TAGS:
         return False
     return not _DECADE.match(key)
 
