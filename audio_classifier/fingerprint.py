@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import shutil
 import subprocess
 
 
@@ -26,3 +27,7 @@ def parse_fpcalc_output(output: str) -> FingerprintResult:
 def run_fpcalc(path: str | Path) -> FingerprintResult:
     proc = subprocess.run(["fpcalc", str(path)], text=True, capture_output=True, check=True)
     return parse_fpcalc_output(proc.stdout)
+
+
+def fpcalc_available() -> bool:
+    return shutil.which("fpcalc") is not None

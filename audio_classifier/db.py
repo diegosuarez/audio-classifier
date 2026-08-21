@@ -44,6 +44,7 @@ def init_db(conn: sqlite3.Connection) -> None:
       album TEXT,
       release_date TEXT,
       track_number TEXT,
+      genre TEXT,
       raw_json TEXT NOT NULL,
       chosen INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
@@ -84,9 +85,9 @@ def store_fingerprint(conn: sqlite3.Connection, file_id: int, duration: int, fin
 def store_identification(conn: sqlite3.Connection, file_id: int, metadata, provider: str = "acoustid") -> None:
     conn.execute("UPDATE identifications SET chosen=0 WHERE audio_file_id=?", (file_id,))
     conn.execute(
-        """INSERT INTO identifications(audio_file_id,provider,score,acoustid_id,musicbrainz_recording_id,title,artist,album,release_date,track_number,raw_json,chosen,created_at)
-           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-        (file_id, provider, metadata.score, metadata.acoustid_id, metadata.recording_id, metadata.title, metadata.artist, metadata.album, metadata.release_date, metadata.track_number, json.dumps(metadata.raw or {}, ensure_ascii=False), 1, now_iso()),
+        """INSERT INTO identifications(audio_file_id,provider,score,acoustid_id,musicbrainz_recording_id,title,artist,album,release_date,track_number,genre,raw_json,chosen,created_at)
+           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (file_id, provider, metadata.score, metadata.acoustid_id, metadata.recording_id, metadata.title, metadata.artist, metadata.album, metadata.release_date, metadata.track_number, metadata.genre, json.dumps(metadata.raw or {}, ensure_ascii=False), 1, now_iso()),
     )
     conn.commit()
 

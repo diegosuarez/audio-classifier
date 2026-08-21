@@ -10,12 +10,15 @@ KEY_MAP = {
     "album": "album",
     "release_date": "date",
     "track_number": "tracknumber",
+    "genre": "genre",
 }
+
+TAG_SOURCE_KEYS = tuple(KEY_MAP)
 
 
 def desired_tag_updates(existing: dict, metadata: dict, overwrite: bool = False) -> dict[str, str]:
     updates = {}
-    for src_key in ["title", "artist", "album", "release_date", "track_number"]:
+    for src_key in TAG_SOURCE_KEYS:
         value = metadata.get(src_key)
         if not value:
             continue

@@ -17,6 +17,7 @@ class TrackMetadata:
     album: str = ""
     release_date: str = ""
     track_number: str = ""
+    genre: str = ""
     raw: dict | None = None
 
     def asdict(self) -> dict:
@@ -24,7 +25,7 @@ class TrackMetadata:
         return data
 
 
-def _artist_phrase(recording: dict) -> str:
+def artist_phrase(recording: dict) -> str:
     # AcoustID commonly returns "artists"; MusicBrainz APIs may return "artist-credit".
     artists = recording.get("artists") or []
     names = [a.get("name", "").strip() for a in artists if a.get("name")]
@@ -48,7 +49,7 @@ def normalize_acoustid_result(result: dict) -> TrackMetadata | None:
         return None
     rec = recordings[0]
     title = (rec.get("title") or "").strip()
-    artist = _artist_phrase(rec)
+    artist = artist_phrase(rec)
     if not title or not artist:
         return None
     releases = rec.get("releases") or []
@@ -87,6 +88,24 @@ def best_fingerprint_match_without_metadata(payload: dict, min_score: float = 0.
     if not matches:
         return None
     return sorted(matches, key=lambda item: item[0], reverse=True)[0]
+
+
+def best_result_recording_ids(payload: dict, min_score: float = 0.85) -> tuple[float, str, list[str]] | None:
+    """Best-scoring result with its MusicBrainz recording ids, metadata or not.
+
+    AcoustID sometimes matches a fingerprint but returns recordings without a
+    title or artist. The recording ids are still usable to ask MusicBrainz.
+    """
+    best: tuple[float, str, list[str]] | None = None
+    for result in payload.get("results") or []:
+        score = float(result.get("score") or 0.0)
+        if score < min_score:
+            continue
+        recording_ids = [rec["id"] for rec in result.get("recordings") or [] if rec.get("id")]
+        candidate = (score, result.get("id") or "", recording_ids)
+        if best is None or score > best[0]:
+            best = candidate
+    return best
 
 
 def lookup_acoustid(api_key: str, duration: int, fingerprint: str, *, timeout: int = 30) -> dict:
