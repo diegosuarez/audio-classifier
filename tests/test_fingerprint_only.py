@@ -1,4 +1,4 @@
-from audio_idtag.resolver import best_fingerprint_match_without_metadata
+from audio_classifier.resolver import best_fingerprint_match_without_metadata
 
 
 def test_best_fingerprint_match_without_metadata_returns_high_score_id():

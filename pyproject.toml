@@ -1,12 +1,12 @@
 [project]
-name = "audio-idtag"
+name = "audio-classifier"
 version = "0.1.0"
 description = "Identify audio files with AcoustID/MusicBrainz, rename safely, and fill MP3 ID3 tags."
 requires-python = ">=3.12"
 dependencies = ["mutagen>=1.48"]
 
 [project.scripts]
-audio-idtag = "audio_idtag.cli:main"
+audio-classifier = "audio_classifier.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

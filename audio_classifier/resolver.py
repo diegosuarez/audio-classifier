@@ -97,6 +97,6 @@ def lookup_acoustid(api_key: str, duration: int, fingerprint: str, *, timeout: i
         "meta": "recordings+recordingids+releases+releasegroups+tracks+compress",
     }
     url = "https://api.acoustid.org/v2/lookup?" + urllib.parse.urlencode(params)
-    req = urllib.request.Request(url, headers={"User-Agent": "audio-idtag/0.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": "audio-classifier/0.1"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))

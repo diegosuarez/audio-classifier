@@ -15,7 +15,7 @@ from .resolver import choose_best_result, lookup_acoustid, best_fingerprint_matc
 from .tags import write_mp3_tags
 
 AUDIO_EXTS = {".mp3", ".flac", ".m4a", ".mp4", ".ogg", ".opus", ".wav", ".aac"}
-DEFAULT_DB = Path.home() / ".local" / "share" / "audio-idtag" / "audio-idtag.db"
+DEFAULT_DB = Path.home() / ".local" / "share" / "audio-classifier" / "audio-classifier.db"
 
 
 def sha256_head(path: Path, max_bytes: int = 1024 * 1024) -> str:
@@ -113,7 +113,7 @@ def print_table(rows):
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="audio-idtag")
+    p = argparse.ArgumentParser(prog="audio-classifier")
     sub = p.add_subparsers(dest="cmd", required=True)
     for name in ["scan", "apply"]:
         sp = sub.add_parser(name)

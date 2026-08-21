@@ -1,7 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from audio_idtag.cli import target_for
+from audio_classifier.cli import target_for
 
 
 def test_target_for_default_pattern_uses_uniform_title_artist_ext(tmp_path):

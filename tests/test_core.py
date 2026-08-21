@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from audio_idtag.renamer import make_safe_filename, dedupe_path
-from audio_idtag.fingerprint import parse_fpcalc_output
-from audio_idtag.resolver import choose_best_result, normalize_acoustid_result
-from audio_idtag.tags import desired_tag_updates
+from audio_classifier.renamer import make_safe_filename, dedupe_path
+from audio_classifier.fingerprint import parse_fpcalc_output
+from audio_classifier.resolver import choose_best_result, normalize_acoustid_result
+from audio_classifier.tags import desired_tag_updates
 
 
 def test_parse_fpcalc_output_extracts_duration_and_fingerprint():

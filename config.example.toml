@@ -2,7 +2,7 @@
 api_key = "PASTE_YOUR_ACOUSTID_API_KEY_HERE"
 
 [musicbrainz]
-app_name = "audio-idtag"
+app_name = "audio-classifier"
 contact = ""
 
 [rename]

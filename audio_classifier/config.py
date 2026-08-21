@@ -15,7 +15,7 @@ class AppConfig:
 
 
 def default_config_path() -> Path:
-    return Path(os.getenv("AUDIO_IDTAG_CONFIG", Path.home() / ".config" / "audio-idtag" / "config.toml")).expanduser()
+    return Path(os.getenv("AUDIO_CLASSIFIER_CONFIG", Path.home() / ".config" / "audio-classifier" / "config.toml")).expanduser()
 
 
 def load_config(path: str | Path | None = None) -> AppConfig:
