@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import os
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from .renamer import DEFAULT_PATTERN, validate_pattern
 
@@ -51,7 +51,9 @@ def load_config(env_file: str | Path | None = None) -> AppConfig:
             raise FileNotFoundError(f"Env file not found: {path}")
         load_dotenv(path)
     else:
-        load_dotenv()
+        # usecwd: find_dotenv otherwise walks up from the calling frame, which
+        # does not exist when the module is driven from a script on stdin.
+        load_dotenv(find_dotenv(usecwd=True))
     key = (os.getenv("ACOUSTID_API_KEY") or "").strip()
     if not key:
         raise ValueError("Missing ACOUSTID_API_KEY (set it in the environment or in .env)")

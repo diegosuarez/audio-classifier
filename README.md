@@ -204,6 +204,24 @@ uv run audio-classifier apply /path/to/folder --yes
   nationalities, moods and shelf labels are filtered out before a tag is
   accepted as a genre.
 
+## Accuracy
+
+Measured on 66 music videos downloaded from YouTube, transcoded to MP3 with
+all metadata stripped, and renamed to their opaque video id so nothing but the
+audio could identify them:
+
+| Result | Files | |
+| --- | ---: | ---: |
+| Correct artist and title | 53 | 80% |
+| Right track, variant naming (radio edit, unplugged) | 4 | 6% |
+| Not in AcoustID | 8 | 12% |
+| Wrong | 1 | 2% |
+
+Every one of the eight misses is a live recording (Glastonbury, Pinkpop, a BBC
+session); studio tracks were identified almost without exception. Albums were
+filled for 50 of the 58 identified files, dates for 49, genres for 21 — and
+that last figure is with no Last.fm key configured.
+
 ## State
 
 Fingerprints, identifications and every applied operation are recorded in a

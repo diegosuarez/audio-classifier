@@ -48,18 +48,33 @@ def fetch_recording(recording_id: str, *, contact: str = "", timeout: int = 30) 
         return json.loads(resp.read().decode("utf-8"))
 
 
-def _pick_release(releases: list[dict]) -> dict | None:
-    """Prefer an official release, then the earliest one.
+# Release group primary types, best first for "which album is this from".
+_PRIMARY_TYPE_RANK = {"album": 0, "ep": 1, "single": 2}
 
-    The earliest official release is usually the original album rather than a
-    later compilation or reissue.
+
+def _release_rank(release: dict) -> tuple:
+    """Sort key that puts the original studio album first.
+
+    Ranking by date alone surfaces whichever compilation happened to be
+    released early, so a release group carrying any secondary type
+    (Compilation, Live, Soundtrack, Remix...) is demoted before anything else
+    is considered.
     """
+    group = release.get("release-group") or {}
+    secondary = [t for t in (group.get("secondary-types") or []) if t]
+    primary = (group.get("primary-type") or "").strip().lower()
+    return (
+        1 if secondary else 0,
+        _PRIMARY_TYPE_RANK.get(primary, 3),
+        0 if (release.get("status") or "") == "Official" else 1,
+        group.get("first-release-date") or release.get("date") or "9999-99-99",
+    )
+
+
+def _pick_release(releases: list[dict]) -> dict | None:
     if not releases:
         return None
-    def sort_key(release: dict) -> tuple[int, str]:
-        official = 0 if (release.get("status") or "") == "Official" else 1
-        return (official, release.get("date") or "9999-99-99")
-    return sorted(releases, key=sort_key)[0]
+    return sorted(releases, key=_release_rank)[0]
 
 
 def _track_number(release: dict) -> str:

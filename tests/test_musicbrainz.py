@@ -150,3 +150,43 @@ def test_genre_falls_back_to_the_release_group():
         ],
     }
     assert metadata_from_recording(payload).genre == "post-rock"
+
+
+COMPILATION_VS_ALBUM = {
+    "id": "rec-3",
+    "title": "The Passenger",
+    "artist-credit": [{"name": "Iggy Pop"}],
+    "releases": [
+        {
+            "title": "A Million In Prizes: The Anthology",
+            "status": "Official",
+            "release-group": {
+                "first-release-date": "2005-06-17",
+                "primary-type": "Album",
+                "secondary-types": ["Compilation"],
+            },
+        },
+        {
+            "title": "Lust for Life",
+            "status": "Official",
+            "release-group": {"first-release-date": "1977-08-29", "primary-type": "Album"},
+        },
+        {
+            "title": "The Passenger",
+            "status": "Official",
+            "release-group": {"first-release-date": "1977-04-01", "primary-type": "Single"},
+        },
+    ],
+}
+
+
+def test_compilations_lose_to_the_original_studio_album():
+    """An anthology is official and would win on date alone."""
+    merged = merge_recording_details(TrackMetadata(title="T", artist="A"), COMPILATION_VS_ALBUM)
+    assert merged.album == "Lust for Life"
+    assert merged.release_date == "1977-08-29"
+
+
+def test_an_album_beats_an_earlier_single():
+    merged = merge_recording_details(TrackMetadata(title="T", artist="A"), COMPILATION_VS_ALBUM)
+    assert merged.album != "The Passenger"

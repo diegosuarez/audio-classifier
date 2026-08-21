@@ -125,7 +125,7 @@ def process_folder(args, apply: bool = False) -> int:
             fp = run_fpcalc(path)
             store_fingerprint(conn, file_id, fp.duration, fp.fingerprint)
             payload = lookup_acoustid(cfg.acoustid_api_key, fp.duration, fp.fingerprint)
-            meta = choose_best_result(payload, min_score=min_score)
+            meta = choose_best_result(payload, min_score=min_score, duration=fp.duration)
             time.sleep(args.sleep)
             enriched = enrich_with_musicbrainz(payload, meta, min_score, cfg.contact) if use_musicbrainz else meta
             used_musicbrainz = enriched is not meta

@@ -38,7 +38,7 @@ def _stub_pipeline(monkeypatch, tmp_path):
     monkeypatch.setattr(
         cli,
         "choose_best_result",
-        lambda payload, min_score: TrackMetadata(title="Title", artist="Artist", score=0.9),
+        lambda payload, **kwargs: TrackMetadata(title="Title", artist="Artist", score=0.9),
     )
 
 
