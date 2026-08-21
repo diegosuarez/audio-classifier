@@ -378,4 +378,18 @@ Two pieces carry most of the subtlety and are worth reading before changing:
 
 ## License
 
-Not yet chosen. Add one before depending on this.
+Copyright 2026 Diego Suárez.
+
+Licensed under the Apache License, Version 2.0. You may obtain a copy of the
+License at <http://www.apache.org/licenses/LICENSE-2.0>, or read [LICENSE](LICENSE)
+in this repository.
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+This project talks to third-party services under their own terms: AcoustID
+([data licensed CC0](https://acoustid.org/), client keys are per-application),
+MusicBrainz ([their API rate limiting and etiquette](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting))
+and Last.fm ([API terms of service](https://www.last.fm/api/tos)).
