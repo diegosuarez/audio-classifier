@@ -1,0 +1,11 @@
+[acoustid]
+api_key = "PASTE_YOUR_ACOUSTID_API_KEY_HERE"
+
+[musicbrainz]
+app_name = "audio-idtag"
+contact = ""
+
+[rename]
+pattern = "{title} - {artist}.{ext}"
+min_score = 0.85
+write_tags = true
